@@ -33,8 +33,12 @@ function saveData(event) {
   save('feedback-form-state', data);
 }
 function updateOutput() {
-  form.elements.email.value = load('feedback-form-state')?.email ?? '';
-  form.elements.message.value = load('feedback-form-state')?.message ?? '';
+  if (localStorage.getItem('feedback-form-state') === null) {
+    return;
+  } else {
+    form.elements.email.value = load('feedback-form-state').email || '';
+    form.elements.message.value = load('feedback-form-state').message || '';
+  }
 }
 
 form.addEventListener('submit', handleSubmit);
