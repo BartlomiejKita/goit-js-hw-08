@@ -1,6 +1,7 @@
-var throttle = require('lodash.throttle');
+'use strict';
+const form = document.querySelector('.feedback-form');
+const throttle = require('lodash.throttle');
 
-//////////////////////////////////////////////////////////////
 const save = (key, value) => {
   try {
     const serializedState = JSON.stringify(value);
@@ -18,34 +19,32 @@ const load = key => {
     console.error('Get state error: ', error.message);
   }
 };
-//////////////////////////////////////////////////////////////
-const form = document.querySelector('.feedback-form');
 
-updateOutput();
-form.addEventListener('input', throttle(saveData, 500));
-
-function saveData(event) {
-  const data = {
-    email: form.elements.email.value,
-    message: form.elements.message.value,
-  };
-
-  save('feedback-form-state', data);
-}
-function updateOutput() {
-  if (localStorage.getItem('feedback-form-state') === null) {
+// Using an Immediately Invoked Function Expression (IIFE) for checking localStorage
+(() => {
+  if (load('feedback-form-state') === undefined) {
     return;
   } else {
     form.elements.email.value = load('feedback-form-state').email || '';
     form.elements.message.value = load('feedback-form-state').message || '';
   }
-}
+})();
 
-form.addEventListener('submit', handleSubmit);
+const saveLS = () => {
+  let data = {
+    email: form.elements.email.value,
+    message: form.elements.message.value,
+  };
+  save('feedback-form-state', data);
+};
 
-function handleSubmit(event) {
-  event.preventDefault();
+form.addEventListener('input', throttle(saveLS, 500));
+
+const formHandler = e => {
+  e.preventDefault();
   console.log(load('feedback-form-state'));
   localStorage.removeItem('feedback-form-state');
   form.reset();
-}
+};
+
+form.addEventListener('submit', formHandler);

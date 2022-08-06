@@ -1,15 +1,32 @@
+'use strict';
 import Player from '@vimeo/player';
-var throttle = require('lodash.throttle');
+const throttle = require('lodash.throttle');
 
-const iframe = document.querySelector('#vimeo-player');
-const player = new Vimeo.Player(iframe);
+const iframe = document.querySelector('iframe');
+const player = new Player(iframe);
 
-player.on(
-  'timeupdate',
-  throttle(function (data) {
-    console.log(data.seconds);
-    localStorage.setItem('videoplayer-current-time', `${data.seconds}`);
-  }, 1000),
-);
+const save = (key, value) => {
+  try {
+    const serializedState = JSON.stringify(value);
+    localStorage.setItem(key, serializedState);
+  } catch (error) {
+    console.error('Set state error: ', error.message);
+  }
+};
 
-player.setCurrentTime(localStorage.getItem('videoplayer-current-time'));
+const load = key => {
+  try {
+    const serializedState = localStorage.getItem(key);
+    return serializedState === null ? undefined : JSON.parse(serializedState);
+  } catch (error) {
+    console.error('Get state error: ', error.message);
+  }
+};
+
+const onPlay = ({ seconds }) => {
+  save('videoplayer-current-time', seconds);
+};
+
+player.on('timeupdate', throttle(onPlay, 1000));
+
+player.setCurrentTime(load('videoplayer-current-time'));
